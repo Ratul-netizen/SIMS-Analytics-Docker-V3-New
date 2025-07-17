@@ -242,13 +242,46 @@ export default function NewsDetail() {
   // Coverage status
   const isCovered = finalBangladeshiMatches.length > 0 || finalInternationalMatches.length > 0;
 
-  // Category, Sentiment, Summary
-  const summaryText =
-    summary?.summary_text ||
-    summary?.summary ||
-    data.summary_text ||
-    (typeof data.summary === 'string' ? data.summary : null) ||
-    "No summary available";
+  // Category, Sentiment, Summary with enhanced fallback logic
+  const getSummaryWithFallback = () => {
+    // First try the standard summary fields
+    if (summary?.summary_text && summary.summary_text.trim().length > 0) return summary.summary_text;
+    if (summary?.summary && summary.summary.trim().length > 0) return summary.summary;
+    if (data.summary_text && data.summary_text.trim().length > 0) return data.summary_text;
+    if (typeof data.summary === 'string' && data.summary.trim().length > 0) return data.summary;
+    
+    // Enhanced fallback logic for unverified or missing summaries
+    if (summary?.extractSummary && summary.extractSummary.trim().length > 0 && summary.extractSummary.length < 600) return summary.extractSummary;
+    
+    // Extract meaningful content from article text
+    const articleText = data.text || data.article_text || "";
+    if (articleText && articleText.trim().length > 100) {
+      // Extract first few sentences that contain meaningful content
+      const sentences = articleText.match(/[^.!?]+[.!?]+/g) || [];
+      if (sentences.length > 0) {
+        // Take first 2-3 sentences, but limit to ~300 characters for readability
+        let summary = sentences.slice(0, 3).join(' ').trim();
+        if (summary.length > 300) {
+          summary = sentences.slice(0, 2).join(' ').trim();
+        }
+        if (summary.length > 50) return summary;
+      }
+      
+      // If sentences don't work, take first paragraph or portion
+      if (articleText.length < 400) return articleText.trim();
+      
+      // Extract first meaningful portion (up to first period or 300 chars)
+      const firstPart = articleText.substring(0, 300);
+      const lastPeriod = firstPart.lastIndexOf('.');
+      if (lastPeriod > 100) {
+        return firstPart.substring(0, lastPeriod + 1).trim();
+      }
+    }
+    
+    return "Summary not available for this article.";
+  };
+
+  const summaryText = getSummaryWithFallback();
 
 
 
@@ -298,19 +331,7 @@ export default function NewsDetail() {
     </div>
   );
 
-  // Fallback summary logic
-  const getFallbackSummary = () => {
-    if (summary.summary_text && summary.summary_text.length < 600) return summary.summary_text;
-    if (summary.extractSummary && summary.extractSummary.length < 600) return summary.extractSummary;
-    if (summary.summary && summary.summary.length < 600) return summary.summary;
-    if (articleText.length > 0 && articleText.length < 600) return articleText;
-    if (data.text) {
-      const sentences = data.text.match(/[^.!?]+[.!?]+/g) || [];
-      const fallback = sentences.slice(0, 2).join(' ').trim();
-      if (fallback.length > 0 && fallback.length < 600) return fallback;
-    }
-    return "No summary available.";
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50">
