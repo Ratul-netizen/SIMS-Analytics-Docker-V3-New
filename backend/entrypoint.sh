@@ -7,8 +7,14 @@ service cron start
 # Run database migrations
 flask db upgrade
 
-# Initial data fetch
-flask fetch-exa
+# Start the Flask server immediately
+flask run --host=0.0.0.0 --port=5000 &
 
-# Start the Flask server
-flask run --host=0.0.0.0 --port=5000 
+# Store the Flask server PID
+FLASK_PID=$!
+
+# Run initial data fetch in background (non-blocking)
+flask fetch-exa &
+
+# Wait for the Flask server process
+wait $FLASK_PID 

@@ -251,7 +251,6 @@ const categoryColorMap: Record<string, string> = {
 const factCheckColorMap: Record<string, string> = {
   verified: "bg-green-100 text-green-700 border-green-300",
   unverified: "bg-gray-100 text-gray-700 border-gray-300",
-  partially_verified: "bg-yellow-100 text-yellow-700 border-yellow-300",
   true: "bg-green-100 text-green-700 border-green-300",
   false: "bg-red-100 text-red-700 border-red-300",
   mixed: "bg-yellow-100 text-yellow-700 border-yellow-300",
@@ -610,18 +609,16 @@ export default function Dashboard() {
 
   // --- FactCheck Pie Chart Data - using GLOBAL filtered data ---
   const factCheckCounts = useMemo(() => {
-    const counts: Record<string, number> = { verified: 0, partially_verified: 0, unverified: 0 };
+    const counts: Record<string, number> = { verified: 0, unverified: 0 };
     globalFilteredNews.forEach((item: any) => {
       // Use the helper function to get fact check status from new API structure
       const status = getFactCheckStatus(item);
-      // Count all three categories: verified, partially_verified, unverified
-      if (status === 'verified') {
-        counts.verified++;
-      } else if (status === 'partially_verified') {
-        counts.partially_verified++;
-      } else {
-        counts.unverified++;
-      }
+              // Count verified and unverified categories
+        if (status === 'verified') {
+          counts.verified++;
+        } else {
+          counts.unverified++;
+        }
     });
     return counts;
   }, [globalFilteredNews]);
@@ -634,7 +631,6 @@ export default function Dashboard() {
         data: factCheckValues,
         backgroundColor: factCheckLabels.map(l => 
           l === 'verified' ? '#22c55e' :     // Green for verified
-          l === 'partially_verified' ? '#fbbf24' :  // Yellow for partially verified
           '#9ca3af'   // Gray for unverified
         ),
       },

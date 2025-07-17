@@ -21,7 +21,6 @@ const sentimentColor = {
 };
 const factCheckColor = {
   verified: "bg-green-100 text-green-700 border-green-300",
-  partially_verified: "bg-yellow-100 text-yellow-700 border-yellow-300",
   unverified: "bg-gray-100 text-gray-700 border-gray-300",
 };
 const categoryColor = {
@@ -45,7 +44,6 @@ const sentimentIcon = {
 };
 const factCheckIcon = {
   verified: <FaCheckCircle className="inline mr-1" />,
-  partially_verified: <FaQuestionCircle className="inline mr-1" />,
   unverified: <FaRegNewspaper className="inline mr-1" />,
 };
 

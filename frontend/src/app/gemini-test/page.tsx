@@ -66,7 +66,6 @@ const categoryColorMap: Record<string, string> = {
 
 const factCheckColorMap: Record<string, string> = {
   verified: "bg-green-100 text-green-700 border-green-300",
-  partially_verified: "bg-yellow-100 text-yellow-700 border-yellow-300",
   unverified: "bg-gray-100 text-gray-700 border-gray-300",
 };
 
@@ -268,6 +267,93 @@ export default function GeminiTestPage() {
                   </span>
                 </div>
               </div>
+              
+              {/* Fact Check Sources */}
+              {result.analysis.fact_check.sources && result.analysis.fact_check.sources.length > 0 && (
+                <div>
+                  <h3 className="font-medium text-gray-700 mb-3">Fact Check Sources ({result.analysis.fact_check.sources.length})</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {result.analysis.fact_check.sources.map((source: any, index: number) => (
+                      <div
+                        key={index}
+                        className="bg-blue-50 border border-blue-200 rounded-lg p-4 hover:bg-blue-100 transition"
+                      >
+                                                 <div className="flex items-start justify-between mb-2">
+                           <div className="font-medium text-blue-800 text-sm">
+                             {source.source_name || 'Unknown Source'}
+                           </div>
+                           <div className="flex flex-col items-end gap-1">
+                             <span className={`px-2 py-1 rounded text-xs font-medium ${
+                               source.source_country?.toLowerCase().includes('bd') || source.source_country?.toLowerCase().includes('bangladesh')
+                                 ? 'bg-green-100 text-green-700'
+                                 : 'bg-orange-100 text-orange-700'
+                             }`}>
+                               {source.source_country || 'Unknown'}
+                             </span>
+                             {source.verification_status && (
+                               <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                 source.verification_status === 'gemini-verified' 
+                                   ? 'bg-emerald-100 text-emerald-700'
+                                   : source.verification_status === 'backend-verified'
+                                   ? 'bg-blue-100 text-blue-700'
+                                   : 'bg-gray-100 text-gray-700'
+                               }`}>
+                                 {source.verification_status === 'gemini-verified' && '🟢 Gemini ✓'}
+                                 {source.verification_status === 'backend-verified' && '🔵 System ✓'}
+                                 {source.verification_status === 'unverified' && '⚪ Unverified'}
+                               </span>
+                             )}
+                           </div>
+                         </div>
+                        {source.source_url && (
+                          <a 
+                            href={source.source_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 underline text-sm break-all"
+                          >
+                            🔗 {new URL(source.source_url).hostname}
+                          </a>
+                        )}
+                        {!source.source_url && (
+                          <div className="text-gray-400 text-sm italic">No URL available</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                                     <div className="mt-3 text-sm text-gray-600">
+                     <p>💡 <strong>Sources Legend:</strong></p>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                       <div>
+                         <p><strong>Source Origin:</strong></p>
+                         <p>🟢 <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">BD/Bangladesh</span> - Local Bangladeshi sources</p>
+                         <p>🟠 <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-xs">International</span> - Global/Regional sources</p>
+                       </div>
+                       <div>
+                         <p><strong>Verification Status:</strong></p>
+                         <p>🟢 <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded text-xs">Gemini ✓</span> - AI verified the URL works</p>
+                         <p>🔵 <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">System ✓</span> - Backend validated the URL</p>
+                         <p>⚪ <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs">Unverified</span> - URL not validated</p>
+                       </div>
+                     </div>
+                   </div>
+                </div>
+              )}
+              
+              {/* No Sources Found */}
+              {(!result.analysis.fact_check.sources || result.analysis.fact_check.sources.length === 0) && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <div className="text-yellow-800 font-medium mb-1">⚠️ No Fact-Check Sources Found</div>
+                  <p className="text-yellow-700 text-sm">
+                    Gemini could not find reliable sources to verify this story. This could mean:
+                  </p>
+                  <ul className="text-yellow-700 text-sm mt-2 ml-4 list-disc">
+                    <li>The story is very recent and hasn't been covered widely yet</li>
+                    <li>The story may be from limited or unreliable sources</li>
+                    <li>Web search didn't return relevant verification sources</li>
+                  </ul>
+                </div>
+              )}
               
               {/* Summary */}
               {result.analysis.summary && (

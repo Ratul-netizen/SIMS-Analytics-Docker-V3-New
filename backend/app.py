@@ -41,27 +41,31 @@ INDIAN_SOURCES = set([
     "timesofindia.indiatimes.com", "hindustantimes.com", "ndtv.com", "thehindu.com", "indianexpress.com", "indiatoday.in", "news18.com", "zeenews.india.com", "aajtak.in", "abplive.com", "jagran.com", "bhaskar.com", "livehindustan.com", "business-standard.com", "economictimes.indiatimes.com", "livemint.com", "scroll.in", "thewire.in", "wionews.com", "indiatvnews.com", "newsnationtv.com", "jansatta.com", "india.com"
 ])
 BD_SOURCES = set([
-    # English Language Dailies
-    'thedailystar.net', 'bdnews24.com', 'newagebd.net', 'tbsnews.net', 'dhakatribune.com', 
-    'observerbd.com', 'thefinancialexpress.com.bd', 'unb.com.bd', 'risingbd.com', 
-    'bangladeshpost.net', 'daily-bangladesh.com',
+    # Complete Bangladeshi Media List
+    'thedailystar.net', 'bdnews24.com', 'prothomalo.com', 'dailynayadiganta.com',
+    'jugantor.com', 'mzamin.com', 'thefinancialexpress.com.bd', 'financialexpress.com.bd',
+    'dailyjanakantha.com', 'samakal.com', 'dhakatribune.com', 'banglatribune.com',
+    'banglanews24.com', 'dhakapost.com', 'dhakamail.com', 'jagonews24.com',
+    'priyo.com', 'ittefaq.com', 'bangladeshpratidin.com', 'kalerkantho.com',
+    'amadershomoy.com', 'dailyinqilab.com', 'jaijaidin.com', 'ajkerpatrika.com',
+    'thesangbad.com', 'bangladesherkhabor.com', 'bd24live.com', 'somoynews.tv',
+    'dailysun.com', 'newagebd.net', 'thebusinessstandard.net', 'risingbd.com',
+    'rtnn.net', 'sarabangla.net', 'sheershanews.com', 'bssnews.net',
+    'atnnews.tv', 'channel24bd.tv', 'channelionline.com', 'dbcinews.tv',
+    'ekusheytv.com', 'independent24.com', 'jamuna.tv', 'odhikar.news',
+    'poriborton.news', 'bartafx.com', 'dailybangladesh.com', 'deshrupantor.com',
+    'amarnoakhali.com', 'anandadhara.com', 'ukhiyanews.com',
     
-    # Bengali Language Dailies
-    'prothomalo.com', 'bangladeshpratidin.com.bd', 'jugantor.com', 'kalerkantho.com', 
-    'ittefaq.com.bd', 'samakal.com', 'manabzamin.com', 'bhorerkagoj.com.bd', 
-    'janakantha.com.bd', 'amadershomoy.com', 'bonikbarta.net', 'dailyinqilab.com', 
+    # Legacy/variant domains
+    'tbsnews.net', 'channeli.tv', 'atnbangla.tv', 'ntvbd.com', 'itvbd.com',
+    'gtv.com.bd', 'ekushey-tv.com', 'rtvonline.com', 'banglavision.tv',
+    'massranga.tv', 'ekattor.tv', 'news24bd.tv', 'atnnewstv.com',
+    'btv.gov.bd', 'deshtvbd.com', 'bijoytv.com', 'boishakhitv.com',
+    'observerbd.com', 'unb.com.bd', 'bangladeshpost.net', 'daily-bangladesh.com',
+    'bangladeshpratidin.com.bd', 'ittefaq.com.bd', 'manabzamin.com',
+    'bhorerkagoj.com.bd', 'janakantha.com.bd', 'bonikbarta.net',
     'jaijaidinbd.com', 'alokitobangladesh.com', 'daily-sangbad.com',
-    
-    # TV/Online News
-    'channeli.tv', 'atnbangla.tv', 'ntvbd.com', 'itvbd.com', 'somoynews.tv', 
-    'gtv.com.bd', 'ekushey-tv.com', 'rtvonline.com', 'banglavision.tv', 
-    'massranga.tv', 'channel24bd.tv', 'dbcnews.tv', 'ekattor.tv', 'jamuna.tv', 
-    'news24bd.tv', 'atnnewstv.com', 'btv.gov.bd', 'deshtvbd.com', 'bijoytv.com', 
-    'boishakhitv.com',
-    
-    # Legacy entries (keeping existing for compatibility)
-    'banglatribune.com', 'bssnews.net', 'daily-sun.com', 'dailyjanakantha.com',
-    'amardesh.com', 'dailynayadiganta.com', 'dailysangram.com'
+    'daily-sun.com', 'amardesh.com', 'dailysangram.com'
 ])
 INTL_SOURCES = set([
     # Major Global News Networks
@@ -230,10 +234,10 @@ def determine_fact_check_status(sources):
     """
     Determine fact-check status based on simplified 2-category rules:
     - verified: ≥1 BD + ≥1 international source (both categories required)
-    - partially_verified: ≥1 BD OR ≥1 international source (but not both)
-    - unverified: no external sources found (only original news source itself)
+    - unverified: everything else (only BD, only international, or no sources)
     
-    Note: Any source that is not BD/Bangladesh is automatically treated as international.
+    Note: Sources are still shown even if marked as unverified.
+    Any source that is not BD/Bangladesh is automatically treated as international.
     """
     if not sources or not isinstance(sources, list):
         return 'unverified'
@@ -249,14 +253,14 @@ def determine_fact_check_status(sources):
         source_country = source.get('source_country', '').lower()
         source_name = source.get('source_name', '')
         
-        if source_country in ['bd', 'bangladesh']:
+        if source_country.lower() in ['bd', 'bangladesh']:
             bd_sources.append(source_name)
         else:
             # Any source that is NOT BD/Bangladesh is treated as international
-            # This includes 'international', 'other', or any unspecified category
+            # This includes 'india', 'international', 'other', or any unspecified category
             international_sources.append(source_name)
     
-    # Apply enhanced fact-check rules with simplified 2-category system
+    # Apply simplified 2-category system
     has_bd_source = len(bd_sources) >= 1
     has_intl_source = len(international_sources) >= 1
     
@@ -265,17 +269,14 @@ def determine_fact_check_status(sources):
         logger.info(f"VERIFIED: Found both categories - BD: {len(bd_sources)} ({bd_sources}), International: {len(international_sources)} ({international_sources})")
         return 'verified'
     
-    # PARTIALLY_VERIFIED: Has either BD or International sources, but not both
-    elif has_bd_source or has_intl_source:
-        if has_bd_source and not has_intl_source:
-            logger.info(f"PARTIALLY_VERIFIED: Found {len(bd_sources)} BD sources ({bd_sources}) but missing international verification")
-        elif has_intl_source and not has_bd_source:
-            logger.info(f"PARTIALLY_VERIFIED: Found {len(international_sources)} international sources ({international_sources}) but missing BD sources")
-        return 'partially_verified'
-    
-    # UNVERIFIED: No external sources found
+    # UNVERIFIED: Everything else (only BD, only international, or no sources)
     else:
-        logger.info(f"UNVERIFIED: No external sources found for verification (BD: {len(bd_sources)}, International: {len(international_sources)})")
+        if has_bd_source and not has_intl_source:
+            logger.info(f"UNVERIFIED: Found {len(bd_sources)} BD sources ({bd_sources}) but missing international verification")
+        elif has_intl_source and not has_bd_source:
+            logger.info(f"UNVERIFIED: Found {len(international_sources)} international sources ({international_sources}) but missing BD sources")
+        else:
+            logger.info(f"UNVERIFIED: No external sources found for verification (BD: {len(bd_sources)}, International: {len(international_sources)})")
         return 'unverified'
 
 def categorize_news_source(domain, url):
@@ -284,54 +285,73 @@ def categorize_news_source(domain, url):
     """
     domain = domain.lower()
     
-    # BD Sources - Comprehensive List (Updated)
+    # BD Sources - Comprehensive List (Updated from user's complete list)
     bd_sources_map = {
-        # English Language Dailies
+        # Primary Bangladeshi News Media
         'thedailystar.net': 'The Daily Star',
-        'bdnews24.com': 'bdnews24.com',
-        'dhakatribune.com': 'Dhaka Tribune',
-        'newagebd.net': 'New Age Bangladesh',
-        'tbsnews.net': 'The Business Standard',
-        'observerbd.com': 'The Observer',
-        'thefinancialexpress.com.bd': 'The Financial Express BD',
-        'financialexpress.com.bd': 'The Financial Express BD',
-        'unb.com.bd': 'United News of Bangladesh',
-        'risingbd.com': 'Risingbd',
-        'bangladeshpost.net': 'Bangladesh Post',
-        'daily-bangladesh.com': 'Daily Bangladesh',
-        
-        # Bengali Language Dailies
+        'bdnews24.com': 'Bangladesh News 24 Hours Ltd',
         'prothomalo.com': 'Prothom Alo',
-        'bangladeshpratidin.com.bd': 'Bangladesh Pratidin',
-        'jugantor.com': 'Jugantor',
-        'kalerkantho.com': 'Kaler Kantho',
-        'ittefaq.com.bd': 'Ittefaq',
-        'samakal.com': 'Samakal',
-        'manabzamin.com': 'Manab Zamin',
-        'bhorerkagoj.com.bd': 'Bhorer Kagoj',
-        'janakantha.com.bd': 'Janakantha',
+        'dailynayadiganta.com': 'Daily Naya Diganta',
+        'jugantor.com': 'Daily Jugantor',
+        'mzamin.com': 'Dainik Manab Zamin',
+        'thefinancialexpress.com.bd': 'The Financial Express',
+        'financialexpress.com.bd': 'The Financial Express',
+        'dailyjanakantha.com': 'Janakantha',
+        'samakal.com': 'The Daily Samakal',
+        'dhakatribune.com': 'Dhaka Tribune',
+        'banglatribune.com': 'Bangla Tribune',
+        'banglanews24.com': 'Banglanews24.com',
+        'dhakapost.com': 'Dhaka Post',
+        'dhakamail.com': 'Dhaka Mail',
+        'jagonews24.com': 'Jagonews24.com',
+        'priyo.com': 'Priyo.com',
+        'ittefaq.com': 'The Daily Ittefaq',
+        'bangladeshpratidin.com': 'Bangladesh Pratidin',
+        'kalerkantho.com': 'Daily Kalerkantho',
         'amadershomoy.com': 'Amader Shomoy',
-        'bonikbarta.net': 'Bonik Barta',
         'dailyinqilab.com': 'Daily Inqilab',
-        'jaijaidinbd.com': 'Jai Jai Din',
-        'alokitobangladesh.com': 'Alokito Bangladesh',
-        'daily-sangbad.com': 'Daily Sangbad',
+        'jaijaidin.com': 'Jaijaidin',
+        'ajkerpatrika.com': 'Ajker Patrika',
+        'thesangbad.com': 'The Sangbad',
+        'bangladesherkhabor.com': 'Bangladesher Khabor',
+        'bd24live.com': 'BD24Live Media',
+        'somoynews.tv': 'Somoy News',
+        'dailysun.com': 'Daily Sun',
+        'newagebd.net': 'New Age',
+        'thebusinessstandard.net': 'The Business Standard',
+        'risingbd.com': 'Risingbd',
+        'rtnn.net': 'RTNN',
+        'sarabangla.net': 'Sara Bangla',
+        'sheershanews.com': 'Sheersha News',
+        'bssnews.net': 'BSS - Bangladesh Sangbad Sangstha',
+        'atnnews.tv': 'ATN News',
+        'channel24bd.tv': 'Channel 24',
+        'channelionline.com': 'Channel I',
+        'dbcinews.tv': 'DBC News',
+        'ekusheytv.com': 'Ekushey TV',
+        'independent24.com': 'Independent TV',
+        'jamuna.tv': 'Jamuna Television',
+        'odhikar.news': 'Odhikar',
+        'poriborton.news': 'Poriborton',
+        'bartafx.com': 'barta24',
+        'dailybangladesh.com': 'Daily Bangladesh',
+        'deshrupantor.com': 'Desh Rupantor',
+        'amarnoakhali.com': 'Amar Noakhali',
+        'anandadhara.com': 'Anandadhara',
+        'ukhiyanews.com': 'UkhiyaNews.Com',
         
-        # TV/Online News Channels
+        # Additional variants and legacy domains
+        'tbsnews.net': 'The Business Standard',
         'channeli.tv': 'Channel i',
         'atnbangla.tv': 'ATN Bangla',
         'ntvbd.com': 'NTV Bangladesh',
         'itvbd.com': 'Independent Television',
-        'somoynews.tv': 'Somoy News',
         'gtv.com.bd': 'Gazi Television',
         'ekushey-tv.com': 'Ekushey TV',
         'rtvonline.com': 'RTV',
         'banglavision.tv': 'Banglavision',
         'massranga.tv': 'Maasranga TV',
-        'channel24bd.tv': 'Channel 24',
-        'dbcnews.tv': 'DBC News',
         'ekattor.tv': 'Ekattor TV',
-        'jamuna.tv': 'Jamuna TV',
         'news24bd.tv': 'News24',
         'atnnewstv.com': 'ATN News',
         'btv.gov.bd': 'Bangladesh Television',
@@ -340,75 +360,142 @@ def categorize_news_source(domain, url):
         'boishakhitv.com': 'Boishakhi TV'
     }
     
-    # International Sources - Comprehensive List (Updated)
+    # Indian Sources - Comprehensive List (Updated to fix classification)
+    indian_sources_map = {
+        # Major Indian News Media
+        'timesofindia.indiatimes.com': 'Times of India',
+        'thehindu.com': 'The Hindu',
+        'indianexpress.com': 'Indian Express',
+        'hindustantimes.com': 'Hindustan Times',
+        'economictimes.indiatimes.com': 'The Economic Times',
+        'business-standard.com': 'Business Standard',
+        'ndtv.com': 'NDTV',
+        'news18.com': 'News18',
+        'indiatoday.in': 'India Today',
+        'zeenews.india.com': 'Zee News',
+        'aajtak.in': 'Aaj Tak',
+        'abplive.com': 'ABP Live',
+        'jagran.com': 'Dainik Jagran',
+        'bhaskar.com': 'Dainik Bhaskar',
+        'livehindustan.com': 'Live Hindustan',
+        'livemint.com': 'Mint',
+        'scroll.in': 'Scroll.in',
+        'thewire.in': 'The Wire',
+        'wionews.com': 'WION',
+        'indiatvnews.com': 'India TV',
+        'newsnationtv.com': 'News Nation',
+        'jansatta.com': 'Jansatta',
+        'india.com': 'India.com',
+        'outlookindia.com': 'Outlook India',
+        'thequint.com': 'The Quint',
+        'dnaindia.com': 'DNA',
+        'navbharattimes.indiatimes.com': 'Navbharat Times',
+        'firstpost.com': 'First Post',
+        'timesnownews.com': 'Times Now',
+        'thestatesman.com': 'The Statesman',
+        'telegraphindia.com': 'The Telegraph',
+        'deccanherald.com': 'Deccan Herald',
+        'newindianexpress.com': 'The New Indian Express',
+        'manoramaonline.com': 'Manorama Online',
+        'dainikjagran.com': 'Dainik Jagran',
+        'amarujala.com': 'Amar Ujala',
+        'divyabhaskar.co.in': 'Divya Bhaskar',
+        'dainikbhaskar.com': 'Dainik Bhaskar',
+        'zeenews.com': 'Zee News',
+        'oneindia.com': 'Oneindia'
+    }
+    
+    # International Sources - Comprehensive List (Updated from user's complete list)
     intl_sources_map = {
-        # Major Global News Networks
+        # Major International News Media
+        'nytimes.com': 'The New York Times',
+        'bbc.co.uk': 'BBC News',
         'bbc.com': 'BBC News',
         'cnn.com': 'CNN',
         'edition.cnn.com': 'CNN International',
-        'aljazeera.com': 'Al Jazeera',
+        'theguardian.com': 'The Guardian',
+        'dailymail.co.uk': 'Daily Mail',
         'reuters.com': 'Reuters',
         'apnews.com': 'Associated Press',
+        'aljazeera.com': 'Al Jazeera',
+        'euronews.com': 'Euronews',
+        'dw.com': 'Deutsche Welle',
+        'france24.com': 'France 24',
+        'rt.com': 'RT',
+        'skynews.com': 'Sky News',
+        'al-arabiya.net': 'Al Arabiya',
+        'nhk.or.jp': 'NHK World-Japan',
+        'cgtn.com': 'CGTN',
+        'i24news.tv': 'i24NEWS',
+        'trt.net.tr': 'TRT Haber/Global',
+        'bloomberg.com': 'Bloomberg Business',
+        'forbes.com': 'Forbes',
+        'cnbc.com': 'CNBC',
+        'chinadaily.com.cn': 'China Daily',
+        'news.com.au': 'news.com.au',
+        'nzherald.co.nz': 'New Zealand Herald',
+        'dawn.com': 'Dawn',
+        'jakartapost.com': 'Jakarta Post',
+        'thestar.com.my': 'Star',
+        'straitstimes.com': 'Straits Times',
+        'bangkokpost.com': 'Bangkok Post',
+        'japantimes.co.jp': 'Japan Times',
+        'scmp.com': 'South China Morning Post',
+        'voanews.com': 'Voice of America',
+        'yahoo.com': 'Yahoo! News',
+        'news.google.com': 'Google News',
+        'msn.com': 'MSN News',
+        'globo.com': 'Globo',
+        'naver.com': 'Naver',
+        'detik.com': 'Detik',
+        'uol.com.br': 'UOL',
+        'infobae.com': 'Infobae',
+        'onet.pl': 'Onet',
+        'wp.pl': 'Wirtualna Polska',
+        'bild.de': 'Bild',
+        'livedoor.jp': 'Livedoor',
+        'auone.jp': 'Auone',
+        't-online.de': 'T-Online',
+        'vnexpress.net': 'VnExpress',
+        'n-tv.de': 'n-tv',
+        '163.com': 'NetEase',
+        'nypost.com': 'New York Post',
+        'usatoday.com': 'USA Today',
+        'rbc.ru': 'RBC',
+        'elpais.com': 'El País',
+        'elmundo.es': 'El Mundo',
+        'corriere.it': 'Corriere della Sera',
+        'repubblica.it': 'La Repubblica',
+        
+        # Additional legacy and variant domains
         'sky.com': 'Sky News',
         'news.sky.com': 'Sky News',
-        'france24.com': 'France 24',
-        'dw.com': 'Deutsche Welle',
         'foxnews.com': 'Fox News',
         'abcnews.go.com': 'ABC News',
         'msnbc.com': 'MSNBC',
-        'cnbc.com': 'CNBC',
-        'nhk.or.jp': 'NHK World',
         'www3.nhk.or.jp': 'NHK World',
         'cbc.ca': 'CBC News',
-        'bloomberg.com': 'Bloomberg',
-        'rt.com': 'RT',
         'alarabiya.net': 'Al Arabiya',
         'abc.net.au': 'ABC Australia',
         'channelnewsasia.com': 'Channel NewsAsia',
-        
-        # Major Newspapers
-        'nytimes.com': 'The New York Times',
         'washingtonpost.com': 'The Washington Post',
-        'theguardian.com': 'The Guardian',
         'wsj.com': 'The Wall Street Journal',
         'ft.com': 'Financial Times',
-        'usatoday.com': 'USA Today',
         'independent.co.uk': 'The Independent',
-        'dailymail.co.uk': 'Daily Mail',
         'lefigaro.fr': 'Le Figaro',
         'faz.net': 'Frankfurter Allgemeine',
-        'elpais.com': 'El País',
         'theglobeandmail.com': 'The Globe and Mail',
-        
-        # Asian News Sources
         'asahi.com': 'The Asahi Shimbun',
         'yomiuri.co.jp': 'The Yomiuri Shimbun',
-        'chinadaily.com.cn': 'China Daily',
-        'straitstimes.com': 'The Straits Times',
-        'scmp.com': 'South China Morning Post',
-        'japantimes.co.jp': 'The Japan Times',
         'mainichi.jp': 'The Mainichi',
         'koreatimes.co.kr': 'The Korea Times',
         'joongang.co.kr': 'JoongAng Daily',
         'hankyoreh.com': 'The Hankyoreh',
         'kompas.com': 'Kompas',
-        
-        # Indian News Sources (International Category)
-        'ndtv.com': 'NDTV',
-        'timesofindia.indiatimes.com': 'Times of India',
-        'hindustantimes.com': 'Hindustan Times',
-        'thehindu.com': 'The Hindu',
-        'bhaskar.com': 'Dainik Bhaskar',
-        'jagran.com': 'Dainik Jagran',
-        
-        # Middle East & Africa
         'gulfnews.com': 'Gulf News',
         'arabnews.com': 'Arab News',
-        
-        # European Sources
         'lemonde.fr': 'Le Monde',
         'spiegel.de': 'Der Spiegel',
-        'corriere.it': 'Corriere della Sera',
         'thetimes.co.uk': 'The Times',
         'telegraph.co.uk': 'The Telegraph',
         'mirror.co.uk': 'The Mirror',
@@ -425,38 +512,40 @@ def categorize_news_source(domain, url):
         'irishmirror.ie': 'Irish Mirror',
         'irishnews.com': 'Irish News',
         'belfasttelegraph.co.uk': 'Belfast Telegraph',
-        
-        # US Regional & Specialty
         'cbsnews.com': 'CBS News',
         'nbcnews.com': 'NBC News',
         'latimes.com': 'Los Angeles Times',
-        'forbes.com': 'Forbes',
         'economist.com': 'The Economist',
         'npr.org': 'NPR',
-        'voanews.com': 'Voice of America',
         'rferl.org': 'Radio Free Europe',
-        
-        # Australian Sources
-        'news.com.au': 'News.com.au',
         'smh.com.au': 'Sydney Morning Herald',
         'theage.com.au': 'The Age',
         'theaustralian.com.au': 'The Australian',
-        
-        # Other International
         'tass.com': 'TASS',
         'sputniknews.com': 'Sputnik News',
         'globaltimes.cn': 'Global Times'
     }
     
     # Accept sub-domains like 'en.prothomalo.com' or 'm.bbc.com' by checking suffix
+    # Check Bangladesh sources first
     for key, name in bd_sources_map.items():
         if domain == key or domain.endswith('.' + key):
             return {
                 'source_name': name,
-                'source_country': 'BD',
+                'source_country': 'Bangladesh',
                 'source_url': url
             }
     
+    # Check Indian sources second
+    for key, name in indian_sources_map.items():
+        if domain == key or domain.endswith('.' + key):
+            return {
+                'source_name': name,
+                'source_country': 'India',
+                'source_url': url
+            }
+    
+    # Check International sources last
     for key, name in intl_sources_map.items():
         if domain == key or domain.endswith('.' + key):
             return {
@@ -469,33 +558,90 @@ def categorize_news_source(domain, url):
 
 
 
-def construct_realistic_url(domain, title):
-    """
-    Construct a realistic URL for a news story based on domain and title
-    """
-    import re
-    from datetime import datetime
-    
-    # Clean title for URL
-    clean_title = re.sub(r'[^\w\s-]', '', title.lower())
-    clean_title = re.sub(r'\s+', '-', clean_title.strip())
-    clean_title = clean_title[:50]  # Limit length
-    
-    current_year = datetime.now().year
-    
-    # Domain-specific URL patterns
-    url_patterns = {
-        'thedailystar.net': f'https://www.thedailystar.net/news/bangladesh/politics/news-{clean_title}-{current_year}',
-        'bdnews24.com': f'https://bdnews24.com/bangladesh/{clean_title}',
-        'dhakatribune.com': f'https://www.dhakatribune.com/bangladesh/{current_year}/{clean_title}',
-        'prothomalo.com': f'https://www.prothomalo.com/bangladesh/{clean_title}',
-        'bbc.com': f'https://www.bbc.com/news/world-asia-{clean_title}-{current_year}',
-        'reuters.com': f'https://www.reuters.com/world/asia-pacific/{clean_title}-{current_year}',
-        'cnn.com': f'https://www.cnn.com/{current_year}/world/asia/{clean_title}',
-        'aljazeera.com': f'https://www.aljazeera.com/news/{current_year}/asia/{clean_title}'
-    }
-    
-    return url_patterns.get(domain, f'https://{domain}/news/{clean_title}')
+# Removed construct_realistic_url function - was creating fake URLs
+
+def validate_url_thoroughly(url):
+    """Enhanced URL validation with multiple checks"""
+    try:
+        import requests
+        from urllib.parse import urlparse
+        
+        # Basic URL structure validation
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            logger.info(f"✗ Invalid URL structure: {url}")
+            return False
+        
+        # Check for suspicious patterns
+        suspicious_patterns = [
+            'example.com', 'placeholder', 'test.com', 'demo.',
+            'localhost', '127.0.0.1', '0.0.0.0', 'fake-news'
+        ]
+        if any(pattern in url.lower() for pattern in suspicious_patterns):
+            logger.info(f"✗ Suspicious URL pattern detected: {url}")
+            return False
+        
+        # Try HEAD request first (faster)
+        try:
+            response = requests.head(url, timeout=5, allow_redirects=True, headers={
+                'User-Agent': 'Mozilla/5.0 (compatible; SIMS-Analytics-Bot/1.0)'
+            })
+            
+            # Check status code
+            if response.status_code == 200:
+                logger.info(f"✓ URL validated via HEAD: {url}")
+                return True
+            elif response.status_code in [301, 302, 303, 307, 308]:
+                # Check if redirect leads to valid content
+                final_url = response.url
+                if final_url and final_url != url:
+                    logger.info(f"✓ URL redirects to: {final_url}")
+                    return True
+            
+        except requests.exceptions.RequestException:
+            # HEAD failed, try GET with limited data
+            try:
+                response = requests.get(url, timeout=5, stream=True, headers={
+                    'User-Agent': 'Mozilla/5.0 (compatible; SIMS-Analytics-Bot/1.0)'
+                })
+                
+                if response.status_code == 200:
+                    # Check if it's actual article content (not just homepage)
+                    content_type = response.headers.get('content-type', '').lower()
+                    if 'text/html' in content_type:
+                        # Read first 1KB to check for article indicators
+                        try:
+                            chunk = next(response.iter_content(1024)).decode('utf-8', errors='ignore')
+                            article_indicators = [
+                                'article', 'news', 'story', 'headline', 'byline',
+                                'published', 'author', 'reporter', 'correspondent'
+                            ]
+                            if any(indicator in chunk.lower() for indicator in article_indicators):
+                                logger.info(f"✓ URL validated via GET (article content): {url}")
+                                return True
+                            else:
+                                logger.info(f"✗ URL doesn't appear to be article content: {url}")
+                                return False
+                        except:
+                            logger.info(f"✓ URL accessible but content unreadable: {url}")
+                            return True  # Give benefit of doubt
+                    else:
+                        logger.info(f"✓ URL accessible (non-HTML content): {url}")
+                        return True
+                else:
+                    logger.info(f"✗ URL returned status {response.status_code}: {url}")
+                    return False
+                    
+            except requests.exceptions.RequestException as e:
+                logger.info(f"✗ URL validation failed (GET): {url} - {str(e)}")
+                return False
+        
+        logger.info(f"✗ URL validation failed (status {response.status_code}): {url}")
+        return False
+        
+    except Exception as e:
+        logger.info(f"✗ URL validation error: {url} - {str(e)}")
+        return False
 
 def validate_url_exists(url):
     """
@@ -672,6 +818,7 @@ class Article(db.Model):
                         'url': source.get('source_url', '')
                     })
                 elif source_country and source_country not in ['bd', 'bangladesh']:
+                    # Indian and International sources both go to international_matches for display
                     international_matches.append({
                         'title': source.get('source_name', 'Unknown'),
                         'source': source.get('source_name', 'Unknown'),
@@ -881,32 +1028,34 @@ def call_gemini_api(title, full_text):
         Evaluate the reporting perspective, potential bias, and framing of the story.
         
         **FACT-CHECKING SOURCES:**
-        Use web search to find supporting sources about this story from BOTH regions:
+        Use web search to find actual news articles that cover this same story. VERIFY each URL works before including it.
         
-        1. **BANGLADESH SOURCES** - Search for coverage from BD news media:
-           - Bangladeshi newspapers (Daily Star, Prothom Alo, Dhaka Tribune, etc.)
-           - BD TV channels (Channel i, Somoy News, Jamuna TV, etc.)
-           - BD online news portals
+        **VERIFICATION PROCESS:**
+        1. Search for articles about this topic
+        2. For each potential source, VISIT the URL to confirm it exists and loads properly
+        3. Only include URLs that you have successfully verified are working
+        4. Format verified sources exactly like this:
         
-        2. **INTERNATIONAL SOURCES** - Search for coverage from global media:
-           - International news agencies (Reuters, AP, BBC, CNN, Al Jazeera, etc.)
-           - Regional media (Indian, Pakistani, regional outlets)
-           - Wire services and global publications
+        **VERIFIED SOURCES:**
+        1. SOURCE: [Source Name] | COUNTRY: [Bangladesh/India/International] | URL: https://verified-working-url.com/article-path | VERIFIED: ✓
+        2. SOURCE: [Source Name] | COUNTRY: [Bangladesh/India/International] | URL: https://verified-working-url.com/article-path | VERIFIED: ✓
         
-        For each source found, provide:
-        - Source name and country/region
-        - Full URL (https://...)
-        - Brief description of what the source confirms
-        - Whether it's a BD source or International source
+        Search priorities:
+        - **BANGLADESH**: thedailystar.net, prothomalo.com, dhakatribune.com, bdnews24.com, newagebd.net, dailyjanakantha.com, samakal.com, banglatribune.com, somoynews.tv, jamuna.tv
+        - **INDIA**: timesofindia.indiatimes.com, thehindu.com, economictimes.indiatimes.com, hindustantimes.com, ndtv.com, indianexpress.com, news18.com, business-standard.com
+        - **INTERNATIONAL**: bbc.com, reuters.com, aljazeera.com, cnn.com, apnews.com, theguardian.com, nytimes.com, france24.com, dw.com
         
         **KEY ENTITIES:**
         List important people, places, organizations mentioned.
         
-        IMPORTANT: 
-        - Search for sources from BOTH Bangladesh AND international media
-        - Include ALL URLs from your web search results in your response
-        - Clearly mark each source as either "Bangladesh" or "International"
-        - This cross-regional verification is critical for fact-checking accuracy
+        CRITICAL REQUIREMENTS:
+        - VERIFY each URL actually works by visiting it before including in results
+        - Only include URLs that return valid content (not 404, not blocked, not redirected to homepage)
+        - URLs must be complete and functional (https://domain.com/article/path)
+        - Do NOT create fake, generic, or unverified URLs
+        - If no working sources found after verification, state "NO VERIFIED SOURCES FOUND"
+        - Each URL must link to a specific news article about this exact topic
+        - Include "VERIFIED: ✓" for each working URL you confirm
         """
         
         model = "gemini-2.5-flash"
@@ -941,6 +1090,19 @@ def call_gemini_api(title, full_text):
 
         logger.info(f"Gemini AI response received for '{title[:30]}...': {len(response_text)} chars")
         
+        # Debug: Log the raw response to see what Gemini is actually returning
+        logger.info(f"=== GEMINI RAW RESPONSE DEBUG ===")
+        logger.info(f"Title: {title[:50]}...")
+        logger.info(f"Response length: {len(response_text)} characters")
+        logger.info(f"Raw response preview (first 500 chars): {response_text[:500]}")
+        logger.info(f"=== END GEMINI RAW RESPONSE ===")
+        
+        # Check if web search results are present
+        if "search" in response_text.lower() or "sources" in response_text.lower():
+            logger.info("✓ Response appears to contain search/sources information")
+        else:
+            logger.warning("⚠ Response does not seem to contain search/sources information")
+        
         # Parse the response and structure it for SIMS Analytics
         return parse_gemini_response(response_text, title)
         
@@ -970,91 +1132,210 @@ def parse_gemini_response(response_text, title):
             'gemini_raw_response': response_text[:1000]  # Store first 1000 chars for debugging
         }
         
-        # Extract URLs from web search results (most important for fact-checking)
-        url_patterns = [
-            r'https?://[^\s\)]+',  # Standard HTTP URLs
-            r'www\.[^\s\)]+',      # WWW URLs without protocol
-        ]
+        # Parse structured sources format from Gemini response
+        structured_sources = []
         
-        found_urls = []
-        for pattern in url_patterns:
-            urls = re.findall(pattern, response_text, re.IGNORECASE)
-            found_urls.extend(urls)
+        # Look for the verified sources format: SOURCE: Name | COUNTRY: Country | URL: URL | VERIFIED: ✓
+        verified_pattern = r'SOURCE:\s*([^|]+)\s*\|\s*COUNTRY:\s*([^|]+)\s*\|\s*URL:\s*(https?://[^|\s\n]+)\s*\|\s*VERIFIED:\s*[✓✔]'
+        verified_matches = re.findall(verified_pattern, response_text, re.IGNORECASE)
         
-        # Clean and resolve redirect URLs to get actual source URLs
-        valid_urls = []
-        for url in found_urls:
-            # Clean trailing punctuation
-            url = re.sub(r'[.,;!?\)]+$', '', url.strip())
-            # Add protocol if missing
-            if url.startswith('www.'):
-                url = 'https://' + url
-            # Skip example/placeholder URLs
-            if not any(skip in url.lower() for skip in ['example.com', 'placeholder', 'localhost']):
-                # Resolve redirect URLs from Google's grounding API
-                resolved_url = resolve_redirect_url(url)
-                if resolved_url:
-                    valid_urls.append(resolved_url)
+        # Fallback to basic format if verified format not found
+        basic_pattern = r'SOURCE:\s*([^|]+)\s*\|\s*COUNTRY:\s*([^|]+)\s*\|\s*URL:\s*(https?://[^\s\n]+)'
+        basic_matches = re.findall(basic_pattern, response_text, re.IGNORECASE)
+        
+        # Prefer verified sources, fallback to basic if none found
+        matches = verified_matches if verified_matches else basic_matches
+        verification_status = "gemini-verified" if verified_matches else "unverified"
+        
+        for match in matches:
+            source_name = match[0].strip()
+            source_country = match[1].strip()
+            source_url = match[2].strip()
+            
+            structured_sources.append({
+                'source_name': source_name,
+                'source_country': source_country,
+                'source_url': source_url,
+                'verification_status': verification_status
+            })
+            verification_marker = "🟢 GEMINI-VERIFIED" if verification_status == "gemini-verified" else "🟡 UNVERIFIED"
+            logger.info(f"✓ Structured source found: {source_name} ({source_country}) - {source_url} [{verification_marker}]")
+        
+        # If structured sources found, use them directly (prioritize Gemini-verified ones)
+        if structured_sources:
+            logger.info(f"Using {len(structured_sources)} structured sources from Gemini")
+            
+            # Separate Gemini-verified from unverified sources
+            gemini_verified = [s for s in structured_sources if s.get('verification_status') == 'gemini-verified']
+            unverified = [s for s in structured_sources if s.get('verification_status') != 'gemini-verified']
+            
+            if gemini_verified:
+                logger.info(f"🟢 Found {len(gemini_verified)} Gemini-verified sources (skipping backend validation)")
+                sources = gemini_verified
+            else:
+                logger.info(f"🟡 Found {len(unverified)} unverified sources (will apply backend validation)")
+                # Apply backend validation to unverified sources
+                validated_sources = []
+                for source in unverified:
+                    url = source['source_url']
+                    logger.info(f"Backend validating: {url}")
+                    if validate_url_thoroughly(url):
+                        source['verification_status'] = 'backend-verified'
+                        validated_sources.append(source)
+                        logger.info(f"✓ Backend validated: {url}")
+                    else:
+                        logger.info(f"✗ Backend validation failed: {url}")
+                sources = validated_sources
+        else:
+            # Fallback to URL extraction method
+            logger.info("No structured sources found, falling back to URL extraction")
+            
+            url_patterns = [
+                r'https?://[^\s\)\]\,\;\"\'\n]+',  # Enhanced HTTP URLs (stop at more punctuation)
+                r'www\.[^\s\)\]\,\;\"\'\n]+',      # WWW URLs without protocol
+                r'Source:\s*https?://[^\s\)\]\,\;\"\'\n]+',  # URLs after "Source:" label
+                r'URL:\s*https?://[^\s\)\]\,\;\"\'\n]+',     # URLs after "URL:" label
+                r'\[.*?\]\(https?://[^\s\)\]\,\;\"\'\n]+\)', # Markdown links
+            ]
+            
+            found_urls = []
+            for pattern in url_patterns:
+                urls = re.findall(pattern, response_text, re.IGNORECASE)
+                for url in urls:
+                    # Clean markdown and labels
+                    url = re.sub(r'^.*?Source:\s*', '', url)
+                    url = re.sub(r'^.*?URL:\s*', '', url) 
+                    url = re.sub(r'^\[.*?\]\(', '', url)
+                    url = re.sub(r'\)$', '', url)
+                    if url and len(url) > 10:  # Only URLs longer than 10 chars
+                        found_urls.append(url)
+            
+            logger.info(f"=== URL EXTRACTION DEBUG ===")
+            logger.info(f"Raw URLs found: {len(found_urls)}")
+            if found_urls:
+                logger.info(f"First 5 raw URLs: {found_urls[:5]}")
+            
+            # Clean and validate URLs for actual article content
+            valid_urls = []
+            for url in found_urls:
+                original_url = url
+                # Clean trailing punctuation and whitespace
+                url = re.sub(r'[.,;!?\)]+$', '', url.strip())
+                
+                # Add protocol if missing
+                if url.startswith('www.'):
+                    url = 'https://' + url
+                
+                # Skip obvious non-article URLs
+                skip_patterns = [
+                    'example.com', 'placeholder', 'localhost', 'google.com/search',
+                    '/category/', '/tag/', '/author/', 'subscribe', 'newsletter',
+                    'homepage', 'index.html', 'home.html', '/feed', '/rss'
+                ]
+                
+                if any(skip in url.lower() for skip in skip_patterns):
+                    logger.info(f"✗ URL skipped (non-article): {url}")
+                    continue
+                    
+                # Only include URLs that look like actual articles
+                if any(indicator in url.lower() for indicator in [
+                    '/news/', '/article/', '/story/', '/post/', '/2024/', '/2023/', 
+                    'bangladesh', 'india', '/politics/', '/world/', '/reports/'
+                ]) or url.count('/') >= 4:  # Deep URLs are more likely to be articles
+                    
+                    # Basic URL validation
+                    try:
+                        from urllib.parse import urlparse
+                        parsed = urlparse(url)
+                        if parsed.scheme and parsed.netloc:
+                            valid_urls.append(url)
+                            logger.info(f"✓ Valid article URL: {url}")
+                        else:
+                            logger.info(f"✗ Invalid URL format: {url}")
+                    except Exception as e:
+                        logger.info(f"✗ URL parsing error for {url}: {e}")
                 else:
-                    valid_urls.append(url)  # Fallback to original if resolution fails
-        
-        # Create sources from found URLs
-        sources = []
-        for i, url in enumerate(valid_urls[:10]):  # Limit to 10 sources
-            try:
-                from urllib.parse import urlparse
-                domain = urlparse(url).netloc.lower()
-                
-                # Remove www. prefix for domain matching
-                clean_domain = domain.replace('www.', '')
-                
-                # Use the comprehensive BD sources map for accurate categorization
-                source_info = categorize_news_source(clean_domain, url)
-                if source_info:
-                    # Known BD or International source
-                    source_country = source_info.get('source_country', 'International')
-                    source_name = source_info.get('source_name', source_info.get('name', clean_domain.title()))
-                else:
-                    # Unknown domain - categorize as "International" (anything non-BD is international)
-                    source_country = 'International'
-                    source_name = clean_domain.title()
-                
-                sources.append({
-                    'source_name': source_name,
-                    'source_country': source_country,
-                    'source_url': url
-                })
-            except Exception:
-                continue
+                    logger.info(f"✗ URL doesn't look like article: {url}")
+            
+            logger.info(f"Valid article URLs after filtering: {len(valid_urls)}")
+            
+            # Create sources from found URLs
+            sources = []
+            logger.info(f"=== SOURCE CREATION DEBUG ===")
+            
+            # Use global validate_url_thoroughly function
+            
+            for i, url in enumerate(valid_urls[:10]):  # Limit to 10 sources
+                try:
+                    from urllib.parse import urlparse
+                    domain = urlparse(url).netloc.lower()
+                    
+                    # Remove www. prefix for domain matching
+                    clean_domain = domain.replace('www.', '')
+                    
+                    # Thorough URL validation
+                    logger.info(f"Validating URL: {url}")
+                    if not validate_url_thoroughly(url):
+                        logger.info(f"✗ URL validation failed: {url}")
+                        continue
+                    
+                    # Use the comprehensive BD sources map for accurate categorization
+                    source_info = categorize_news_source(clean_domain, url)
+                    if source_info:
+                        # Known BD or International source
+                        source_country = source_info.get('source_country', 'International')
+                        source_name = source_info.get('source_name', source_info.get('name', clean_domain.title()))
+                        logger.info(f"✓ Known source validated: {source_name} ({source_country}) - {url}")
+                    else:
+                        # Unknown domain - categorize as "International" (anything non-BD is international)
+                        source_country = 'International'
+                        source_name = clean_domain.title()
+                        logger.info(f"✓ Unknown source validated: {source_name} ({source_country}) - {url}")
+                    
+                    sources.append({
+                        'source_name': source_name,
+                        'source_country': source_country,
+                        'source_url': url
+                    })
+                except Exception as e:
+                    logger.error(f"✗ Error processing URL {url}: {e}")
+                    continue
+            
+            logger.info(f"Final validated sources created: {len(sources)}")
+            for i, source in enumerate(sources):
+                logger.info(f"  Source {i+1}: {source['source_name']} ({source['source_country']}) - {source['source_url']}")
+            logger.info(f"=== END URL EXTRACTION DEBUG ===")
         
         result['fact_check']['sources'] = sources
         
         # Enhanced sentiment extraction
         sentiment_patterns = [
-            r'sentiment[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'tone[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'overall sentiment[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'emotional tone[:\s]*["\']?([a-zA-Z]+)["\']?'
+            r'\*\*?\s*SENTIMENT\s*:?\s*\*\*?\s*([a-zA-Z]+)',  # **SENTIMENT:** value
+            r'SENTIMENT\s*:?\s*([a-zA-Z]+)',
+            r'tone\s*:?\s*([a-zA-Z]+)',
+            r'overall sentiment\s*:?\s*([a-zA-Z]+)',
+            r'emotional tone\s*:?\s*([a-zA-Z]+)'
         ]
         for pattern in sentiment_patterns:
             match = re.search(pattern, response_text, re.IGNORECASE)
             if match:
-                sentiment_val = match.group(1).lower()
+                sentiment_val = match.group(1).strip().lower()
                 if sentiment_val in ['positive', 'negative', 'neutral', 'cautious']:
                     result['sentiment'] = sentiment_val
                     break
         
         # Enhanced category extraction
         category_patterns = [
-            r'category[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'classification[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'topic[:\s]*["\']?([a-zA-Z]+)["\']?',
-            r'subject[:\s]*["\']?([a-zA-Z]+)["\']?'
+            r'\*\*?\s*CATEGORY\s*:?\s*\*\*?\s*([a-zA-Z]+)',  # **CATEGORY:** value
+            r'CATEGORY\s*:?\s*([a-zA-Z]+)',
+            r'classification\s*:?\s*([a-zA-Z]+)',
+            r'topic\s*:?\s*([a-zA-Z]+)',
+            r'subject\s*:?\s*([a-zA-Z]+)'
         ]
         for pattern in category_patterns:
             match = re.search(pattern, response_text, re.IGNORECASE)
             if match:
-                category_val = match.group(1).lower()
+                category_val = match.group(1).strip().lower()
                 valid_categories = ['politics', 'sports', 'technology', 'crime', 'health', 'education', 'business', 'entertainment', 'environment', 'others']
                 if category_val in valid_categories:
                     result['category'] = category_val
@@ -1237,7 +1518,7 @@ def parse_gemma_response(response_text, title):
             result['summary'] = summary_match.group(1).strip()
         
         # Extract fact check status
-        fact_check_match = re.search(r'fact_check:\s*(verified|partially_verified|unverified)', response_text, re.IGNORECASE)
+        fact_check_match = re.search(r'fact_check:\s*(verified|unverified)', response_text, re.IGNORECASE)
         if fact_check_match:
             result['fact_check']['status'] = fact_check_match.group(1).lower()
         
@@ -1292,7 +1573,7 @@ def run_exa_ingestion():
         "Bangladesh-related News coverage by Indian news media",
         category="news",
         text=True,
-        num_results=5,
+        num_results=25,
         livecrawl="always",
         include_domains=all_domains,
         subpages=5,
@@ -1438,15 +1719,7 @@ def run_exa_ingestion():
                             if source_info:
                                 fallback_sources.append(source_info)
                     
-                    # Process domain mentions and construct realistic URLs
-                    for domain in set(domain_matches):
-                        if domain not in [get_article_domain(url) for url in url_matches]:  # Avoid duplicates
-                            source_info = categorize_news_source(domain, f"https://{domain}")
-                            if source_info:
-                                # Construct realistic URL for this story
-                                realistic_url = construct_realistic_url(domain, item.title)
-                                source_info['source_url'] = realistic_url
-                                fallback_sources.append(source_info)
+                    # Note: Removed fake URL construction - only use real URLs found in text
                 
                 # If still no sources found, skip this article rather than using placeholders
                 if not fallback_sources:
@@ -1697,11 +1970,7 @@ def reverify_old_articles_with_gemma():
                                     'source_country': 'INTL',
                                     'source_url': url
                                 })
-                        if not fallback_sources:
-                            fallback_sources = [
-                                {'source_name': 'The Daily Star', 'source_country': 'BD', 'source_url': 'https://www.thedailystar.net/news-url'},
-                                {'source_name': 'BBC News', 'source_country': 'UK', 'source_url': 'https://www.bbc.com/news-url'}
-                            ]
+                        # Don't create fake sources - leave empty if no real sources found
                     fc['sources'] = fallback_sources
                 gemma_result['fact_check'] = fc
                 art.summary_json = json.dumps(gemma_result, default=str)
@@ -1807,11 +2076,27 @@ def gemini_analyze():
         if not gemini_client:
             return jsonify({'error': 'Gemini AI not available. Please check GEMINI_API_KEY configuration.'}), 503
         
+        logger.info(f"=== GEMINI ANALYZE REQUEST ===")
+        logger.info(f"Title: {title}")
+        logger.info(f"Text length: {len(text)} characters")
+        logger.info(f"=== START ANALYSIS ===")
+        
         # Perform Gemini AI analysis
         result = call_gemini_api(title, text)
         
         if not result:
+            logger.error("Gemini AI analysis returned None")
             return jsonify({'error': 'Gemini AI analysis failed'}), 500
+        
+        logger.info(f"=== ANALYSIS COMPLETE ===")
+        logger.info(f"Result type: {type(result)}")
+        if isinstance(result, dict):
+            logger.info(f"Fact check status: {result.get('fact_check', {}).get('status', 'unknown')}")
+            sources = result.get('fact_check', {}).get('sources', [])
+            logger.info(f"Number of sources found: {len(sources)}")
+            for i, source in enumerate(sources):
+                logger.info(f"  Source {i+1}: {source.get('source_name', 'Unknown')} ({source.get('source_country', 'Unknown')})")
+        logger.info(f"=== END ANALYSIS DEBUG ===")
         
         return jsonify({
             'success': True,
@@ -1929,7 +2214,10 @@ def debug_article(article_id):
                             if country in ['bd', 'bangladesh']:
                                 source_info["classified_as"] = "bangladeshi"
                                 debug_info["coverage_analysis"]["bangladeshi_matches"].append(source_info)
-                            elif country and country not in ['bd', 'bangladesh']:
+                            elif country == 'india':
+                                source_info["classified_as"] = "indian"
+                                debug_info["coverage_analysis"]["international_matches"].append(source_info)
+                            elif country and country not in ['bd', 'bangladesh', 'india']:
                                 source_info["classified_as"] = "international"
                                 debug_info["coverage_analysis"]["international_matches"].append(source_info)
                             else:
@@ -2054,8 +2342,8 @@ def dashboard():
     latest_news_data = []
     lang_dist = {}
     sentiment_counts_raw = Counter()
-    verdict_counts = {'verified': 0, 'partially_verified': 0, 'unverified': 0}
-    verdict_samples = {'verified': [], 'partially_verified': [], 'unverified': []}
+    verdict_counts = {'verified': 0, 'unverified': 0}
+    verdict_samples = {'verified': [], 'unverified': []}
     last_updated = None
     sources_in_latest = []
 
@@ -2090,17 +2378,7 @@ def dashboard():
             fact_check_status = 'Unverified'
             fact_check_sources = []
             fact_check_similar = []
-        # Fallback: if status is 'unverified' and sources is empty, try to heuristically set to 'verified' if trusted source is mentioned in text
-        if fact_check_status == 'unverified' and not fact_check_sources and a.full_text:
-            trusted_sources = set([
-                'bdnews24.com', 'thedailystar.net', 'prothomalo.com', 'dhakatribune.com', 'newagebd.net', 'financialexpress.com.bd', 'theindependentbd.com',
-                'bbc.com', 'reuters.com', 'aljazeera.com', 'apnews.com', 'cnn.com', 'nytimes.com', 'theguardian.com', 'france24.com', 'dw.com',
-                'factwatchbd.com', 'altnews.in', 'boomlive.in', 'factchecker.in', 'thequint.com', 'factcheck.afp.com', 'snopes.com', 'politifact.com', 'fullfact.org', 'factcheck.org'
-            ])
-            for ts in trusted_sources:
-                if ts in a.full_text:
-                    fact_check_status = 'verified'
-                    break
+        # Note: Removed fake URL fallback logic - only show sources when we have real verification URLs from Gemini web search
         # Matches
         bd_matches = summary_obj.get('bangladeshi_matches', []) if isinstance(summary_obj, dict) else []
         intl_matches = summary_obj.get('international_matches', []) if isinstance(summary_obj, dict) else []
