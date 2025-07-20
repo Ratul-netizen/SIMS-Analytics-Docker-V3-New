@@ -137,4 +137,59 @@ The application includes health check endpoints:
 - `/api/health` - Backend health status
 - `/api/database-stats` - Database statistics
 
-Use these to monitor the application status. 
+Use these to monitor the application status.
+
+## Database Management
+
+### Extracting Database from Docker Container
+
+When you need to backup or extract the database from the Docker container:
+
+#### 1. Copy Database File from Container
+```bash
+# Copy the database file from the backend container
+docker cp sims_backend:/app/instance/SIMS_Analytics.db ./SIMS_Analytics_backup.db
+
+# Or if using a different container name
+docker cp $(docker ps -q -f name=backend):/app/instance/SIMS_Analytics.db ./SIMS_Analytics_backup.db
+```
+
+#### 2. Copy Database to Container
+```bash
+# Copy a database file into the container
+docker cp ./SIMS_Analytics_backup.db sims_backend:/app/instance/SIMS_Analytics.db
+
+# Restart the backend container to use the new database
+docker-compose restart backend
+```
+
+#### 3. Backup Database with Timestamp
+```bash
+# Create a timestamped backup
+docker cp sims_backend:/app/instance/SIMS_Analytics.db "./SIMS_Analytics_$(date +%Y%m%d_%H%M%S).db"
+```
+
+#### 4. Check Database Size
+```bash
+# Check the size of the database file
+docker exec sims_backend ls -lh /app/instance/SIMS_Analytics.db
+```
+
+### Database Reset
+
+To completely reset the database:
+```bash
+# Remove the database file from the container
+docker exec sims_backend rm /app/instance/SIMS_Analytics.db
+
+# Restart the backend to create a fresh database
+docker-compose restart backend
+```
+
+### Database Migration
+
+If you need to migrate the database to a new deployment:
+1. Extract the database using the commands above
+2. Copy the `.db` file to the new deployment
+3. Place it in the `backend/instance/` directory
+4. Restart the backend container 
