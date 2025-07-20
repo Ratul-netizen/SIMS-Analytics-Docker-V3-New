@@ -746,14 +746,6 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 bg-white p-4 rounded-xl shadow">
         <div className="flex items-center gap-4">
           <h1 className="text-4xl font-extrabold mb-4 md:mb-0 whitespace-nowrap">SIMS Analytics Dashboard</h1>
-          <a
-            href="/gemini-test"
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
-            title="Test Gemini 2.5 Flash Analysis"
-          >
-            <FaGlobe />
-            Gemini 2.5 Flash
-          </a>
         </div>
         <div className="flex flex-wrap gap-1 items-center justify-end">
           <input type="date" name="start" value={dateRange.start} onChange={handleDateChange} className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400 transition" />
@@ -1207,38 +1199,54 @@ export default function Dashboard() {
             </button>
           </div>
           {showFactCheck && (
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-medium mb-2">Verification Status</h4>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(globalFilteredNews.reduce((acc: Record<string, number>, item: NewsItem) => {
-                    const status = getFactCheckStatus(item);
-                    acc[status] = (acc[status] || 0) + 1;
-                    return acc;
-                  }, {})).map(([status, count]) => (
-                    <div key={status} className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${factCheckColorMap[status]}`}>{status}</span>
-                      <span className="text-sm text-gray-600">({count})</span>
-                    </div>
-                  ))}
+            <>
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">Verification Status</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(globalFilteredNews.reduce((acc: Record<string, number>, item: NewsItem) => {
+                      const status = getFactCheckStatus(item);
+                      acc[status] = (acc[status] || 0) + 1;
+                      return acc;
+                    }, {})).map(([status, count]) => (
+                      <div key={status} className="flex items-center gap-2">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${factCheckColorMap[status]}`}>{status}</span>
+                        <span className="text-sm text-gray-600">({count})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Top Sources</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(globalFilteredNews.reduce((acc: Record<string, number>, item: NewsItem) => {
+                      const source = item.source_domain || item.source;
+                      acc[source] = (acc[source] || 0) + 1;
+                      return acc;
+                    }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([source, count]) => (
+                      <div key={source} className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{source}</span>
+                        <span className="text-sm text-gray-600">({count})</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div>
-                <h4 className="font-medium mb-2">Top Sources</h4>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(globalFilteredNews.reduce((acc: Record<string, number>, item: NewsItem) => {
-                    const source = item.source_domain || item.source;
-                    acc[source] = (acc[source] || 0) + 1;
-                    return acc;
-                  }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([source, count]) => (
-                    <div key={source} className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{source}</span>
-                      <span className="text-sm text-gray-600">({count})</span>
-                    </div>
-                  ))}
+              
+              {/* Manual Fact-Check Button */}
+              <div className="mt-6 pt-6 border-t border-gray-200 px-6 pb-6">
+                <div className="flex justify-center">
+                  <a
+                    href="/gemini-test"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2 border border-blue-600"
+                    title="Manual Fact-Check Analysis"
+                  >
+                    <FaCheckCircle className="text-white" />
+                    Manual Fact-Check
+                  </a>
                 </div>
               </div>
-            </div>
+            </>
           )}
         </div>
       )}
