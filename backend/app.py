@@ -2304,7 +2304,15 @@ def dashboard():
     # Query articles from DB
     query = Article.query
     if filter_source:
-        query = query.filter(Article.source == filter_source)
+        # Handle both with and without www. prefix
+        if filter_source.startswith('www.'):
+            # If filter is www.ndtv.com, also include ndtv.com
+            clean_source = filter_source.replace('www.', '')
+            query = query.filter(db.or_(Article.source == filter_source, Article.source == clean_source))
+        else:
+            # If filter is ndtv.com, also include www.ndtv.com
+            www_source = f"www.{filter_source}"
+            query = query.filter(db.or_(Article.source == filter_source, Article.source == www_source))
     if start_date:
         try:
             start_dt = datetime.datetime.fromisoformat(start_date)
@@ -2325,10 +2333,17 @@ def dashboard():
             return url.split('/')[2].replace('www.', '')
         except Exception:
             return url
+    
+    # Create a set that includes both with and without www. prefix
+    indian_sources_with_www = set()
+    for source in indian_sources_set:
+        indian_sources_with_www.add(source)
+        indian_sources_with_www.add(f"www.{source}")
+    
     latest_news = []
     for a in articles:
         is_indian_source = False
-        if a.source and a.source in indian_sources_set:
+        if a.source and a.source in indian_sources_with_www:
             is_indian_source = True
         elif a.url:
             domain = get_domain(a.url)
@@ -2692,34 +2707,72 @@ def reanalyze_all_api():
 
 @app.route('/api/indian-sources')
 def indian_sources_api():
-    indian_sources = [
-        ("timesofindia.indiatimes.com", "The Times of India"),
-        ("hindustantimes.com", "Hindustan Times"),
-        ("ndtv.com", "NDTV"),
-        ("thehindu.com", "The Hindu"),
-        ("indianexpress.com", "The Indian Express"),
-        ("indiatoday.in", "India Today"),
-        ("news18.com", "News18"),
-        ("zeenews.india.com", "Zee News"),
-        ("aajtak.in", "Aaj Tak"),
-        ("abplive.com", "ABP Live"),
-        ("jagran.com", "Dainik Jagran"),
-        ("bhaskar.com", "Dainik Bhaskar"),
-        ("livehindustan.com", "Hindustan"),
-        ("business-standard.com", "Business Standard"),
-        ("economictimes.indiatimes.com", "The Economic Times"),
-        ("livemint.com", "Mint"),
-        ("scroll.in", "Scroll.in"),
-        ("thewire.in", "The Wire"),
-        ("wionews.com", "WION"),
-        ("indiatvnews.com", "India TV"),
-        ("newsnationtv.com", "News Nation"),
-        ("jansatta.com", "Jansatta"),
-        ("india.com", "India.com")
-    ]
-    return jsonify([
-        {"domain": domain, "name": name} for domain, name in indian_sources]
-    )
+    # Get all unique sources from database that are Indian sources
+    indian_sources_set = {
+        "timesofindia.indiatimes.com", "hindustantimes.com", "ndtv.com", "thehindu.com", 
+        "indianexpress.com", "indiatoday.in", "news18.com", "zeenews.india.com", 
+        "aajtak.in", "abplive.com", "jagran.com", "bhaskar.com", "livehindustan.com", 
+        "business-standard.com", "economictimes.indiatimes.com", "livemint.com", 
+        "scroll.in", "thewire.in", "wionews.com", "indiatvnews.com", "newsnationtv.com", 
+        "jansatta.com", "india.com"
+    }
+    
+    # Get all sources from database
+    sources_in_db = db.session.query(Article.source).distinct().all()
+    sources_in_db = [s[0] for s in sources_in_db if s[0]]
+    
+    # Find Indian sources in database (including www. variants)
+    indian_sources_found = []
+    for source in sources_in_db:
+        # Remove www. prefix for comparison
+        clean_source = source.replace('www.', '')
+        if clean_source in indian_sources_set:
+            indian_sources_found.append(source)
+    
+    # Create mapping for display names
+    source_names = {
+        "timesofindia.indiatimes.com": "The Times of India",
+        "hindustantimes.com": "Hindustan Times",
+        "ndtv.com": "NDTV",
+        "www.ndtv.com": "NDTV",
+        "thehindu.com": "The Hindu",
+        "www.thehindu.com": "The Hindu",
+        "indianexpress.com": "The Indian Express",
+        "indiatoday.in": "India Today",
+        "www.indiatoday.in": "India Today",
+        "news18.com": "News18",
+        "www.news18.com": "News18",
+        "zeenews.india.com": "Zee News",
+        "aajtak.in": "Aaj Tak",
+        "abplive.com": "ABP Live",
+        "jagran.com": "Dainik Jagran",
+        "bhaskar.com": "Dainik Bhaskar",
+        "livehindustan.com": "Hindustan",
+        "business-standard.com": "Business Standard",
+        "economictimes.indiatimes.com": "The Economic Times",
+        "livemint.com": "Mint",
+        "www.livemint.com": "Mint",
+        "scroll.in": "Scroll.in",
+        "thewire.in": "The Wire",
+        "wionews.com": "WION",
+        "indiatvnews.com": "India TV",
+        "www.indiatvnews.com": "India TV",
+        "newsnationtv.com": "News Nation",
+        "jansatta.com": "Jansatta",
+        "india.com": "India.com"
+    }
+    
+    # Return sources found in database with their counts
+    result = []
+    for source in sorted(indian_sources_found):
+        count = Article.query.filter_by(source=source).count()
+        name = source_names.get(source, source.title())
+        result.append({
+            "domain": source,
+            "name": f"{name} ({count})"
+        })
+    
+    return jsonify(result)
 
 @app.route('/api/health')
 def health_check():
