@@ -2417,6 +2417,27 @@ def dashboard():
         }
         lang = language_map.get(a.source, 'Other')
         lang_dist[lang] = lang_dist.get(lang, 0) + 1
+        # Extract coverage information from fact check sources (same logic as to_dict method)
+        bangladeshi_matches = []
+        international_matches = []
+        
+        for source in fact_check_sources:
+            if isinstance(source, dict):
+                source_country = source.get('source_country', '').lower()
+                if source_country in ['bd', 'bangladesh']:
+                    bangladeshi_matches.append({
+                        'title': source.get('source_name', 'Unknown'),
+                        'source': source.get('source_name', 'Unknown'),
+                        'url': source.get('source_url', '')
+                    })
+                elif source_country and source_country not in ['bd', 'bangladesh']:
+                    # Indian and International sources both go to international_matches for display
+                    international_matches.append({
+                        'title': source.get('source_name', 'Unknown'),
+                        'source': source.get('source_name', 'Unknown'),
+                        'url': source.get('source_url', '')
+                    })
+
         # Compose output
         news_item = {
             'date': a.published_at.isoformat() if a.published_at else None,
@@ -2433,6 +2454,8 @@ def dashboard():
             'detailsUrl': a.url or '',
             'id': a.id,
             'entities': entities,
+            'bangladeshi_matches': bangladeshi_matches,
+            'international_matches': international_matches,
             'media_coverage_summary': {
                 'bangladeshi_media': bd_summary,
                 'international_media': int_summary

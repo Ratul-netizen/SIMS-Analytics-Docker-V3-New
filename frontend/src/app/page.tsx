@@ -46,9 +46,12 @@ interface NewsItem {
   sentiment_toward_bangladesh: string;
   fact_check: {
     status: string;
+    sources?: any[];
   };
   source_domain: string;
   source: string;
+  bangladeshi_matches?: any[];
+  international_matches?: any[];
   media_coverage_summary: {
     bangladeshi_media: string;
     international_media: string;
@@ -497,26 +500,18 @@ export default function Dashboard() {
     setPage(1);
   };
 
-  // --- Media Coverage Distribution using Gemma fact check sources ---
+  // --- Media Coverage Distribution using bangladeshi_matches and international_matches ---
   const mediaCoverageCounts = useMemo(() => {
     let totalBD = 0, totalIntl = 0, bothCovered = 0;
     let totalCoveredArticles = 0;
     
     globalFilteredNews.forEach((item: any) => {
-      // Use Gemma fact check sources if available
-      let sources = [];
-      if (item.summary?.fact_check?.sources) {
-        sources = item.summary.fact_check.sources;
-      } else if (item.fact_check?.sources) {
-        sources = item.fact_check.sources;
-      } else if (item.summary?.fact_check_results?.sources) {
-        sources = item.summary.fact_check_results.sources;
-      } else if (item.summary?.gemma_sources) {
-        sources = item.summary.gemma_sources;
-      }
+      // Use the bangladeshi_matches and international_matches arrays directly
+      const bdMatches = item.bangladeshi_matches || [];
+      const intlMatches = item.international_matches || [];
       
-      const hasBD = sources.some((s: any) => s.source_country && (s.source_country.toLowerCase() === "bd" || s.source_country.toLowerCase() === "bangladesh"));
-      const hasIntl = sources.some((s: any) => s.source_country && !(s.source_country.toLowerCase() === "bd" || s.source_country.toLowerCase() === "bangladesh"));
+      const hasBD = bdMatches.length > 0;
+      const hasIntl = intlMatches.length > 0;
       
       // Count articles that have any coverage
       if (hasBD || hasIntl) {
@@ -528,8 +523,6 @@ export default function Dashboard() {
       
       // Count total International coverage (including those also covered by BD)
       if (hasIntl) totalIntl++;
-      
-
       
       // Count articles covered by both
       if (hasBD && hasIntl) bothCovered++;
@@ -1291,21 +1284,13 @@ export default function Dashboard() {
                   <div className="space-y-2">
                     {(() => {
                       const bangladeshiItems = data.latestIndianNews.filter((item: NewsItem) => {
-                        const matches = 
-                          item.summary?.supportingArticleMatches?.bangladeshiMatches ||
-                          item.summary?.supporting_article_matches?.bangladeshi_matches ||
-                          item.bangladeshi_matches ||
-                          [];
+                        const matches = item.bangladeshi_matches || [];
                         return Array.isArray(matches) && matches.length > 0;
                       }).slice(0, 3);
                       
                       return bangladeshiItems.length > 0 ? (
                         bangladeshiItems.map((item: NewsItem, index: number) => {
-                          const matches = 
-                            item.summary?.supportingArticleMatches?.bangladeshiMatches ||
-                            item.summary?.supporting_article_matches?.bangladeshi_matches ||
-                            item.bangladeshi_matches ||
-                            [];
+                          const matches = item.bangladeshi_matches || [];
                           return (
                             <div key={index} className="text-sm text-gray-700">
                               <div className="font-medium">{item.headline}</div>
@@ -1324,21 +1309,13 @@ export default function Dashboard() {
                   <div className="space-y-2">
                     {(() => {
                       const internationalItems = data.latestIndianNews.filter((item: NewsItem) => {
-                        const matches = 
-                          item.summary?.supportingArticleMatches?.internationalMatches ||
-                          item.summary?.supporting_article_matches?.international_matches ||
-                          item.international_matches ||
-                          [];
+                        const matches = item.international_matches || [];
                         return Array.isArray(matches) && matches.length > 0;
                       }).slice(0, 3);
                       
                       return internationalItems.length > 0 ? (
                         internationalItems.map((item: NewsItem, index: number) => {
-                          const matches = 
-                            item.summary?.supportingArticleMatches?.internationalMatches ||
-                            item.summary?.supporting_article_matches?.international_matches ||
-                            item.international_matches ||
-                            [];
+                          const matches = item.international_matches || [];
                           return (
                             <div key={index} className="text-sm text-gray-700">
                               <div className="font-medium">{item.headline}</div>
@@ -1357,21 +1334,19 @@ export default function Dashboard() {
                   <div className="space-y-2">
                     {(() => {
                       const intlItems = data.latestIndianNews.filter((item: NewsItem) => {
-                        const sources = item.summary?.fact_check?.sources || [];
-                        return sources.some((s: any) => s.source_country && !(s.source_country.toLowerCase() === "bd" || s.source_country.toLowerCase() === "bangladesh"));
+                        const intlMatches = item.international_matches || [];
+                        return intlMatches.length > 0;
                       }).slice(0, 3);
                       
                       return intlItems.length > 0 ? (
                         intlItems.map((item: NewsItem, index: number) => {
-                          const intlSources = (item.summary?.fact_check?.sources || []).filter((s: any) => 
-                            s.source_country && !(s.source_country.toLowerCase() === "bd" || s.source_country.toLowerCase() === "bangladesh")
-                          );
-                          return (
-                            <div key={index} className="text-sm text-gray-700">
-                              <div className="font-medium">{item.headline}</div>
-                              <div className="text-gray-600">International Sources: {intlSources.length}</div>
-                            </div>
-                          );
+                          const intlMatches = item.international_matches || [];
+                                                      return (
+                              <div key={index} className="text-sm text-gray-700">
+                                <div className="font-medium">{item.headline}</div>
+                                <div className="text-gray-600">International Sources: {intlMatches.length}</div>
+                              </div>
+                            );
                         })
                       ) : (
                         <div className="text-gray-400 text-sm italic">No data available</div>
