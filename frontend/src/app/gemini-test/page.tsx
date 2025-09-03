@@ -121,7 +121,7 @@ export default function GeminiTestPage() {
       <div className="bg-white rounded-lg shadow p-6 mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-3 mb-4">
           <FaRobot className="text-blue-600" />
-          Gemini 2.5 Flash Analysis Test
+          Manual Fact Analysis Test
         </h1>
         <p className="text-gray-600">
           Test the Google Gemini 2.5 Flash integration for SIMS Analytics. This system uses only Gemini AI 
