@@ -123,10 +123,6 @@ export default function GeminiTestPage() {
           <FaRobot className="text-blue-600" />
           Manual Fact Analysis Test
         </h1>
-        <p className="text-gray-600">
-          Test the Google Gemini 2.5 Flash integration for SIMS Analytics. This system uses only Gemini AI 
-          (no fallback models) to analyze sentiment, category, entities, fact-checking, and geopolitical implications.
-        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -177,7 +173,7 @@ export default function GeminiTestPage() {
                 ) : (
                   <>
                     <FaRobot />
-                    Analyze with Gemini 2.5 Flash
+                    Analyze
                   </>
                 )}
               </button>
