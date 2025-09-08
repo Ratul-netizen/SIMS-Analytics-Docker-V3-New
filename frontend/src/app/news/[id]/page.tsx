@@ -392,8 +392,14 @@ export default function NewsDetail() {
           </div>
         </div>
         {/* Summary Box */}
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-8 rounded-2xl shadow whitespace-pre-line text-gray-800 text-lg min-h-[80px]">
-          {summaryText}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <FaRegNewspaper className="text-blue-600 text-2xl" />
+            <span className="font-bold text-2xl text-blue-700">News Summary</span>
+          </div>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-8 rounded-2xl shadow whitespace-pre-line text-gray-800 text-lg min-h-[80px]">
+            {summaryText}
+          </div>
         </div>
         {/* Detailed News (collapsible) */}
         <div className="mb-8 max-w-6xl mx-auto">
