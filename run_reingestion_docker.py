@@ -30,8 +30,16 @@ def run_reingestion():
     
     # Step 1: Fetch latest news
     print("📰 Step 1: Fetching latest news from Exa...")
+    print("⏳ This may take 5-15 minutes as it fetches and analyzes 25 articles with Gemini...")
+    print("💡 Each article requires API calls to Exa and Gemini AI.")
+    
+    # Use a longer timeout for fetch (configurable via env var)
+    # Default: 15 minutes (900s) to handle Exa fetch + Gemini analysis for 25 articles
+    fetch_timeout = int(os.getenv('FETCH_TIMEOUT', '900'))  # Default: 15 minutes
+    
     try:
-        response = requests.post(f'{BACKEND_URL}/api/fetch-latest', timeout=300)
+        print(f"⏱️  Timeout set to {fetch_timeout // 60} minutes")
+        response = requests.post(f'{BACKEND_URL}/api/fetch-latest', timeout=fetch_timeout)
         if response.status_code == 200:
             result = response.json()
             print(f"✅ Success: {result.get('message', 'Fetched latest news')}")
@@ -39,12 +47,21 @@ def run_reingestion():
             print(f"❌ Error: HTTP {response.status_code}")
             print(f"   Response: {response.text[:200]}")
             return False
+    except requests.exceptions.Timeout as e:
+        print(f"❌ Timeout Error: Fetch took longer than {fetch_timeout // 60} minutes")
+        print(f"   This means Exa API or Gemini processing is taking longer than expected.")
+        print(f"   💡 Options:")
+        print(f"      1. Check backend logs: docker-compose logs -f backend")
+        print(f"      2. Increase timeout: export FETCH_TIMEOUT=1800  # 30 minutes")
+        print(f"      3. The backend may still be processing - check logs to confirm")
+        return False
     except requests.exceptions.ConnectionError as e:
         print(f"❌ Connection Error: Cannot reach backend at {BACKEND_URL}")
         print(f"   Make sure the backend container is running: docker-compose ps")
         return False
     except Exception as e:
         print(f"❌ Error fetching latest news: {e}")
+        print(f"   Error type: {type(e).__name__}")
         return False
     
     # Step 2: Reanalyze all articles with Gemma
