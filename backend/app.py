@@ -1560,12 +1560,15 @@ def run_exa_ingestion():
         logger.error("Error: EXA_API_KEY environment variable not set")
         return
     with app.app_context():
+        # Check for very recent articles, but don't block - just log a warning
+        # The duplicate checking later will handle actual duplicates
         recent_articles = Article.query.filter(
             Article.published_at >= datetime.datetime.now() - datetime.timedelta(hours=2)
         ).count()
-        if recent_articles > 10:
-            logger.info(f"Found {recent_articles} recent articles, skipping ingestion to avoid duplicates")
-            return
+        if recent_articles > 50:  # Increased threshold from 10 to 50
+            logger.warning(f"Found {recent_articles} recent articles (last 2 hours). This is high, but continuing ingestion anyway. Duplicate checking will filter duplicates.")
+        elif recent_articles > 10:
+            logger.info(f"Found {recent_articles} recent articles in last 2 hours. Continuing ingestion...")
     exa = Exa(api_key=EXA_API_KEY)
     logger.info("Running Exa ingestion for Bangladesh-related news coverage by Indian Media...")
     all_domains = list(INDIAN_SOURCES.union(BD_SOURCES).union(INTL_SOURCES))
