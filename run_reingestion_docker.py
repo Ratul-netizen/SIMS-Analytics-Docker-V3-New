@@ -49,9 +49,16 @@ def run_reingestion():
     
     # Step 2: Reanalyze all articles with Gemma
     print("\n🔍 Step 2: Reanalyzing all articles with Gemma...")
-    print("⏳ This may take several minutes...")
+    print("⏳ This may take 30-60 minutes depending on the number of articles...")
+    print("💡 Each article requires Gemini API calls which can be slow.")
+    
+    # Use a much longer timeout (1 hour) for reanalysis
+    # This can be configured via REANALYZE_TIMEOUT env var
+    reanalyze_timeout = int(os.getenv('REANALYZE_TIMEOUT', '3600'))  # Default: 1 hour
+    
     try:
-        response = requests.post(f'{BACKEND_URL}/api/reanalyze-all', timeout=600)
+        print(f"⏱️  Timeout set to {reanalyze_timeout // 60} minutes")
+        response = requests.post(f'{BACKEND_URL}/api/reanalyze-all', timeout=reanalyze_timeout)
         if response.status_code == 200:
             result = response.json()
             stats = result.get('stats', {})
@@ -61,8 +68,23 @@ def run_reingestion():
             print(f"❌ Error: HTTP {response.status_code}")
             print(f"   Response: {response.text[:200]}")
             return False
+    except requests.exceptions.Timeout as e:
+        print(f"❌ Timeout Error: Reanalysis took longer than {reanalyze_timeout // 60} minutes")
+        print(f"   This means there are many articles to process. The backend may still be working.")
+        print(f"   💡 Options:")
+        print(f"      1. Check backend logs: docker-compose logs -f backend")
+        print(f"      2. Increase timeout: export REANALYZE_TIMEOUT=7200  # 2 hours")
+        print(f"      3. Wait for backend to finish and check database stats manually")
+        print(f"      4. Consider processing articles in batches (modify backend endpoint)")
+        return False
+    except requests.exceptions.ConnectionError as e:
+        print(f"❌ Connection Error: Lost connection to backend during reanalysis")
+        print(f"   The backend might have crashed or be overloaded.")
+        print(f"   Check backend logs: docker-compose logs backend")
+        return False
     except Exception as e:
         print(f"❌ Error reanalyzing articles: {e}")
+        print(f"   Error type: {type(e).__name__}")
         return False
     
     # Step 3: Get updated database stats
